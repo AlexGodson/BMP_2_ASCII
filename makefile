@@ -5,7 +5,7 @@ _SRC=src
 SRC=$(wildcard $(_SRC)/*.c)
 _OBJ=src/OBJ
 OBJ=$(patsubst $(_SRC)/%.c, $(_OBJ)/%.o, $(SRC))
-OUT=ASCIIFY
+OUT=Asciify
 
 all: $(OUT)
 
@@ -15,8 +15,13 @@ $(OUT): $(OBJ)
 $(_OBJ)/%.o: $(_SRC)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-run: $(OUT)
-	./$(OUT)
+test: $(OUT)
+	./$(OUT) inputs/calm_bear.bmp
+	./$(OUT) inputs/checker.bmp
+	./$(OUT) inputs/japanese_scene.bmp
+	./$(OUT) inputs/rose_pond.bmp
+	./$(OUT) inputs/stencil_owl.bmp
+	./$(OUT) inputs/test_err.txt
 
 clear:
 	rm $(OBJ)*

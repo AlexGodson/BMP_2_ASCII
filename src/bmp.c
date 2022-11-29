@@ -3,18 +3,23 @@
 
 #include "../Include/bmp.h"
 
-struct BMP {
-    char* type;
-};
+// Get some head bitches
+    // Checking if the file is the correct BMP format, exit otherwise
+void get_format(FILE *fptr, struct BMP_head *image) {
 
-FILE *_fopen(char *filename) {
-    char filepath[15] = "INPUTS/";
-    strcat(filepath, filename);
-    FILE *fptr = fopen(filepath, "r");
-    if (fptr == NULL) {
-        printf("ERROR: could not open file");
-        printf("Location: shunt.c, _fopen()\n");
+    // Checking the file type. Require file type of BM to continue
+    image->type[0] = fgetc(fptr);
+    image->type[1] = fgetc(fptr);
+
+    if ((image->type[0] != 'B') && (image->type[1] != 'M')) {
+        printf("ERROR: Image provided is not of the BMP file format\n");
         exit(-1);
     }
-    return fptr;
 }
+
+    // TODO
+void get_head(FILE *fptr, struct BMP_head *image) {
+    // TODO
+}
+
+
