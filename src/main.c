@@ -3,32 +3,31 @@
 
 #include "../Include/bmp.h"
 
+char ASCII_TABLE[92] = " `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ&@";
+
 int main(int argc, char **argv) {
     if (argc != 2) {
         printf("ERROR: incorrect usage\n");
         printf("Asciify <filepath>\n");
         exit(-1);
     }
+    printf("\nFILE: %s\n", argv[1]);
 
-    struct BMP_HEADER image_head;
-    get_BMP_head(*(argv + 1), &image_head);
+    struct BMP_HEADER bmp_head;
+    uint8_t *HEX_DATA = get_BMP_data(*(argv + 1), &bmp_head);
+    struct BMP_INFO bmp_info = {
+        bmp_head.image_size_bytes,
+        bmp_head.width_px,
+        bmp_head.height_px,
+    };
 
-    printf("Image: type: %d\n", image_head.type);
-    printf("Image: size: %d\n", image_head.size);
-    printf("Image: reserved1: %d\n", image_head.reserved1);
-    printf("Image: reserved2: %d\n", image_head.reserved2);
-    printf("Image: offset: %d\n", image_head.offset);
-    printf("Image: dib_header_size: %d\n", image_head.dib_header_size);
-    printf("Image: width_px: %d\n", image_head.width_px);
-    printf("Image: height_px: %d\n", image_head.height_px);
-    printf("Image: num_planes: %d\n", image_head.num_planes);
-    printf("Image: bits_per_pixel: %d\n", image_head.bits_per_pixel);
-    printf("Image: compression: %d\n", image_head.compression);
-    printf("Image: image_size_bytes: %d\n", image_head.image_size_bytes);
-    printf("Image: x_resolution_ppm: %d\n", image_head.x_resolution_ppm);
-    printf("Image: y_resolution_ppm: %d\n", image_head.y_resolution_ppm);
-    printf("Image: num_colors: %d\n", image_head.num_colors);
-    printf("Image: important_colors: %d\n", image_head.important_colors);
+    if (HEX_DATA == NULL) {
+        printf("ERROR: Image data not loaded correctly\n");
+        printf("Exiting Program\n");
+        return -1;
+    }
+
+    print_head(bmp_head);
 
     return 0;
 }

@@ -1,10 +1,12 @@
 CC=gcc -std=c99
 INC = /Include
-CFLAGS=-g -Wall -Werror
+CFLAGS=-g -Wall #-Werror
 _SRC=src
 SRC=$(wildcard $(_SRC)/*.c)
 _OBJ=src/OBJ
 OBJ=$(patsubst $(_SRC)/%.c, $(_OBJ)/%.o, $(SRC))
+_INPUT=inputs
+IMGS=$(wildcard $(_INPUT)/*.bmp)
 OUT=Asciify
 
 all: $(OUT)
@@ -15,13 +17,14 @@ $(OUT): $(OBJ)
 $(_OBJ)/%.o: $(_SRC)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+testunit: $(OUT)
+	./$(OUT) inputs/NatGeoFrog256.bmp
+
 test: $(OUT)
-	./$(OUT) inputs/calm_bear.bmp
-	./$(OUT) inputs/checker.bmp
-	./$(OUT) inputs/japanese_scene.bmp
-	./$(OUT) inputs/rose_pond.bmp
-	./$(OUT) inputs/stencil_owl.bmp
-	./$(OUT) inputs/test_err.txt
+	@for i in $(IMGS); \
+	do \
+		./$(OUT) $$i;\
+	done;
 
 clear:
 	rm $(OBJ)*
