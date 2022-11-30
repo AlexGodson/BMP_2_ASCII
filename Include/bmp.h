@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#pragma pack(push, 1)
+
 struct BMP_HEADER {               // Total: 54 bytes
     uint16_t  type;               // Magic identifier: 0x4d42
     uint32_t  size;               // File size in bytes
@@ -23,6 +25,8 @@ struct BMP_HEADER {               // Total: 54 bytes
     uint32_t  num_colors;         // Number of colors
     uint32_t  important_colors;   // Important colors
 };
+
+#pragma pack(pop)
 
 struct PIXEL {
     uint8_t alpha; // Alpha value
