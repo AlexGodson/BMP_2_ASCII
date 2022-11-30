@@ -12,8 +12,6 @@ void get_BMP_head(char *filepath, struct BMP_HEADER *bmp_head) {
         exit(-1);
     }
 
-    printf("size of the stuct is: %ld", sizeof(*bmp_head));
-
     fread(bmp_head, sizeof(*bmp_head), 1, fptr);
 
     if (bmp_head->type != 0x4D42) {
