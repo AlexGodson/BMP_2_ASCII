@@ -2,3 +2,4 @@ Asciify
 .vscode/*
 inputs/*
 src/OBJ/*
+.editorconfig

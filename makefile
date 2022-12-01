@@ -1,6 +1,6 @@
 CC=gcc -std=c99
 INC = /Include
-CFLAGS=-g -Wall #-Werror
+CFLAGS=-g -Wall -Werror
 _SRC=src
 SRC=$(wildcard $(_SRC)/*.c)
 _OBJ=src/OBJ

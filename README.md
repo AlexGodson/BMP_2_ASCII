@@ -1,7 +1,7 @@
 # BMP_2_ASCII
 Program to turn a BMP image into ascii output
 
-#To George
+#Ode To Odd George
 I started creating this program as a simple idea with minor hope. Until I stumbled across a faithful frog.....
 I discovered him on the NatGeo photography website and instantly formed a bond with him.
 With him by my side creating this project we grew close and I decided to name him George, after his origins.

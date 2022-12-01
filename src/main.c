@@ -15,11 +15,6 @@ int main(int argc, char **argv) {
 
     struct BMP_HEADER bmp_head;
     uint8_t *HEX_DATA = get_BMP_data(*(argv + 1), &bmp_head);
-    struct BMP_INFO bmp_info = {
-        bmp_head.image_size_bytes,
-        bmp_head.width_px,
-        bmp_head.height_px,
-    };
 
     if (HEX_DATA == NULL) {
         printf("ERROR: Image data not loaded correctly\n");
@@ -29,5 +24,17 @@ int main(int argc, char **argv) {
 
     print_head(bmp_head);
 
+    struct PIXEL24 *Pixel_Data = HEX_to_PIXEL24(HEX_DATA, bmp_head);
+
+    if (Pixel_Data == NULL) {
+        printf("ERROR: Pixel data empty, Exiting the program\n");
+        return -1;
+    }
+
+    int last = 3 * bmp_head.height_px * bmp_head.width_px;
+    printf("Pixel %x Data:\t%x, %x, %x\n", last + 138, Pixel_Data[last].B, Pixel_Data[last].G, Pixel_Data[last].R);
+
+    free(HEX_DATA);
+    free(Pixel_Data);
     return 0;
 }
