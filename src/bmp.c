@@ -88,9 +88,45 @@ struct PIXEL24 *HEX_to_PIXEL24(uint8_t *hex_data, struct BMP_HEADER bmp_info) {
 }
 
 
+/*      PIXEL32 --- 32bpp
+NULL    11100000 00000000 00000000 00000000
+Alpha   00011111 00000000 00000000 00000000
+Blue    00000000 11111110 00000000 00000000
+Green   00000000 00000001 11111110 00000000
+Red     00000000 00000000 00000001 11111111
+....    00 00 00 00--- then buffer to bring the total bytes per row to a multiple of 4
+*/
+struct PIXEL32 *HEX_to_PIXEL32(uint8_t *hex_data, struct BMP_HEADER bmp_info) {
+    struct PIXEL32 *Pixel_Data = (struct PIXEL32 *)malloc(sizeof(struct PIXEL32) * bmp_info.height_px * bmp_info.width_px);
+
+    if (Pixel_Data == NULL) {
+        printf("ERROR: error allocating enough space for the Pixel data\n");
+        return NULL;
+    }
+
+    int padding = 4 - (bmp_info.width_px % 4);
+    int hex_pos = 0;
+    for (int hp = 0; hp < bmp_info.height_px; ++hp) {
+        for (int wp = 0; wp < bmp_info.width_px; ++wp) {
+            Pixel_Data[(hp * bmp_info.width_px) + wp].A = *(hex_data + hex_pos);
+            Pixel_Data[(hp * bmp_info.width_px) + wp].B = *(hex_data + hex_pos + 1);
+            Pixel_Data[(hp * bmp_info.width_px) + wp].C = *(hex_data + hex_pos + 2);
+            Pixel_Data[(hp * bmp_info.width_px) + wp].D = *(hex_data + hex_pos + 3);
+            hex_pos += 4;
+        }
+        // shifting the bits to the end of the row to make it a multiple of 4
+        if (padding < 4) {
+            hex_pos += (padding);
+        }
+    }
+
+    return Pixel_Data;
+}
+
+
 // averages the pixels to single values to represent their brightness directly based on brightness
 // B G R -> 87 201 18 -> 102
-uint8_t *normalise_pixels_linear(struct BMP_HEADER head, struct PIXEL24 *pixels) {
+uint8_t *normalise_pixels_linear24(struct BMP_HEADER head, struct PIXEL24 *pixels) {
     uint8_t *normal_pixels = (uint8_t*)malloc(sizeof(uint8_t) * head.width_px * head.height_px);
 
     if (normal_pixels == NULL) {
@@ -113,7 +149,50 @@ uint8_t *normalise_pixels_linear(struct BMP_HEADER head, struct PIXEL24 *pixels)
 
 // converts the pixel RGB values to a brightness value
 // higher R/G/B values are weighted to increase the brightness
-uint8_t *normalise_pixels_weighted(struct BMP_HEADER head, struct PIXEL24 *pixels) {
+uint8_t *normalise_pixels_weighted24(struct BMP_HEADER head, struct PIXEL24 *pixels) {
+    uint8_t *normal_pixels = (uint8_t*)malloc(sizeof(uint8_t) * head.width_px * head.height_px);
+
+    for (int pos = 0; pos < head.width_px * head.height_px; ++pos) {
+        // TODO
+    }
+
+    free(pixels);
+    return normal_pixels;
+}
+
+
+// averages the pixels to single values to represent their brightness directly based on brightness
+// Ignores Alpha values
+// A B G R -> 87 201 18 -> 102
+uint8_t *normalise_pixels_linear32(struct BMP_HEADER head, struct PIXEL32 *pixels) {
+    uint8_t *normal_pixels = (uint8_t*)malloc(sizeof(uint8_t) * head.width_px * head.height_px);
+
+    if (normal_pixels == NULL) {
+        printf("ERROR: Couldn't allocate memory for the normalised pixels\n");
+        return NULL;
+    }
+
+    // setting the value at pos to the average pixel value of the pixel at pos
+    int red, green, blue;
+    uint8_t avg;
+    for (int pos = 0; pos < head.width_px * head.height_px; ++pos) {
+        red = (pixels[pos].A + 256 * (pixels[pos].B & 00000001)) / 2;
+        green = ((pixels[pos].B >> 1) + (pixels[pos].C & 00000001)) * 2;
+        blue = (pixels[pos].C >> 1) * 2;
+        avg = (blue + green + red) / 3;
+        *(normal_pixels + pos) = avg;
+    }
+
+    // Freeing the pixel data as it is not needed anymore
+    free(pixels);
+    return (normal_pixels);
+}
+
+
+// converts the pixel RGB values to a brightness value
+// Ignoring alpha values
+// higher R/G/B values are weighted to increase the brightness
+uint8_t *normalise_pixels_weighted32(struct BMP_HEADER head, struct PIXEL32 *pixels) {
     uint8_t *normal_pixels = (uint8_t*)malloc(sizeof(uint8_t) * head.width_px * head.height_px);
 
     for (int pos = 0; pos < head.width_px * head.height_px; ++pos) {
@@ -148,7 +227,10 @@ uint8_t *asciify(uint8_t *values, int asc_w, int asc_h, uint8_t *ascii_table, in
     
     for (int i = 0; i < asc_w * asc_h; ++i) {
         ascii_char = *(values + i) * (table_sz-1);
-        ascii_char = ascii_char / 255;
+        ascii_char = (ascii_char / 255) - 0; // edit the subtract value to make it darker
+        if (ascii_char < 0 || ascii_char > 75) { // edit to change the cutoff value for brightness
+            ascii_char = 0;
+        }
         *(ascii + i) = *(ascii_table + ascii_char);
     }
 

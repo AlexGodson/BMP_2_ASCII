@@ -74,6 +74,13 @@ struct PIXEL24 {
     uint8_t R;      // RED
 };
 
+/*      PIXEL32 --- 32bpp
+NULL    11100000 00000000 00000000 00000000
+Alpha   00011111 00000000 00000000 00000000
+Blue    00000000 11111110 00000000 00000000
+Green   00000000 00000001 11111110 00000000
+Red     00000000 00000000 00000001 11111111
+*/
 struct PIXEL32 {
     uint8_t A;      //
     uint8_t B;      //
@@ -97,14 +104,37 @@ Red -   00 00 FF --- 0    0    255
 struct PIXEL24 *HEX_to_PIXEL24(uint8_t *hex_data, struct BMP_HEADER bmp_info);
 
 
+/*      PIXEL32 --- 32bpp
+NULL    11100000 00000000 00000000 00000000
+Alpha   00011111 00000000 00000000 00000000
+Blue    00000000 11111110 00000000 00000000
+Green   00000000 00000001 11111110 00000000
+Red     00000000 00000000 00000001 11111111
+....    00 00 00 00--- then buffer to bring the total bytes per row to a multiple of 4
+*/
+struct PIXEL32 *HEX_to_PIXEL32(uint8_t *hex_data, struct BMP_HEADER bmp_info);
+
+
 // averages the pixels to single values to represent their brightness directly based on brightness
 // B G R -> 87 201 18 -> 102
-uint8_t *normalise_pixels_linear(struct BMP_HEADER head, struct PIXEL24 *pixels);
+uint8_t *normalise_pixels_linear24(struct BMP_HEADER head, struct PIXEL24 *pixels);
 
 
 // converts the pixel RGB values to a brightness value
 // higher R/G/B values are weighted to increase the brightness
-uint8_t *normalise_pixels_weighted(struct BMP_HEADER head, struct PIXEL24 *pixels);
+uint8_t *normalise_pixels_weighted24(struct BMP_HEADER head, struct PIXEL24 *pixels);
+
+
+// averages the pixels to single values to represent their brightness directly based on brightness
+// Ignores Alpha values
+// A B G R -> 87 201 18 -> 102
+uint8_t *normalise_pixels_linear32(struct BMP_HEADER head, struct PIXEL32 *pixels);
+
+
+// converts the pixel RGB values to a brightness value
+// Ignoring alpha values
+// higher R/G/B values are weighted to increase the brightness
+uint8_t *normalise_pixels_weighted32(struct BMP_HEADER head, struct PIXEL32 *pixels);
 
 
 // Compresses the image to the correct width and height to print to ascii

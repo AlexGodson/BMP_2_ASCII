@@ -26,20 +26,43 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    struct PIXEL24 *Pixel_Data = HEX_to_PIXEL24(HEX_DATA, bmp_head);
+    uint8_t *Normal_Pixels;
 
-    if (Pixel_Data == NULL) {
-        printf("ERROR: Pixel data empty, Exiting the program\n");
-        return -1;
+    if (bmp_head.bits_per_pixel == 32) {
+        struct PIXEL32 *Pixel_Data = HEX_to_PIXEL32(HEX_DATA, bmp_head);
+
+        if (Pixel_Data == NULL) {
+            printf("ERROR: Pixel data empty, Exiting the program\n");
+            return -1;
+        }
+
+        // Normalised pixel data stored as 8 bit ints
+        Normal_Pixels = normalise_pixels_linear32(bmp_head, Pixel_Data);
+
+        if (Normal_Pixels == NULL) {
+            printf("ERROR: normalised pixels not initialised\n");
+            exit(-1);
+        }
+        
+    } else if (bmp_head.bits_per_pixel == 24) {
+        struct PIXEL24 *Pixel_Data = HEX_to_PIXEL24(HEX_DATA, bmp_head);
+
+        if (Pixel_Data == NULL) {
+            printf("ERROR: Pixel data empty, Exiting the program\n");
+            return -1;
+        }
+
+        // Normalised pixel data stored as 8 bit ints
+        Normal_Pixels = normalise_pixels_linear24(bmp_head, Pixel_Data);
+
+        if (Normal_Pixels == NULL) {
+            printf("ERROR: normalised pixels not initialised\n");
+            exit(-1);
+        }
     }
 
-    // Normalised pixel data stored as 8 bit ints
-    uint8_t *Normal_Pixels = normalise_pixels_linear(bmp_head, Pixel_Data);
-
-    if (Normal_Pixels == NULL) {
-        printf("ERROR: normalised pixels not initialised\n");
-        exit(-1);
-    }
+    // Strictly for Debugging, Get rid of soon
+    print_head(bmp_head);
 
     int asc_w = bmp_head.width_px;
     int asc_h = bmp_head.height_px;
@@ -54,12 +77,9 @@ int main(int argc, char **argv) {
 
     print_ascii(ascii, asc_w, asc_h);
     save_ascii(ascii, asc_w, asc_h);
-    
-    print_head(bmp_head);
 
-    // Strictly for Debugging, Get rid of soon
-    // print_head(bmp_head);
-
+    free(ascii);
     free(HEX_DATA);
+
     return 0;
 }
