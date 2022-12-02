@@ -89,16 +89,37 @@ uint8_t *get_BMP_data(char *filepath, struct BMP_HEADER *bmp_head);
 
 // reading the data from the raw HEX into the BMP specific pixel format
 /*      PIXEL24  --- 24bpp
-BLUE    FF 00 00 --- 255  0    0
-GREEN   00 FF 00 --- 0    255  0
-RED     00 00 FF --- 0    0    255
+Blue -  FF 00 00 --- 255  0    0
+Green - 00 FF 00 --- 0    255  0
+Red -   00 00 FF --- 0    0    255
 ....    00 00 00 --- Buffer to bring the total bytes per row to a multiple of 4
 */
 struct PIXEL24 *HEX_to_PIXEL24(uint8_t *hex_data, struct BMP_HEADER bmp_info);
 
 
-// For debugging purposes
-// Prints all of the meta-data associated with the provided BMP file
-void print_head(struct BMP_HEADER head);
+// averages the pixels to single values to represent their brightness directly based on brightness
+// B G R -> 87 201 18 -> 102
+uint8_t *normalise_pixels_linear(struct BMP_HEADER head, struct PIXEL24 *pixels);
+
+
+// converts the pixel RGB values to a brightness value
+// higher R/G/B values are weighted to increase the brightness
+uint8_t *normalise_pixels_weighted(struct BMP_HEADER head, struct PIXEL24 *pixels);
+
+
+// Compresses the image to the correct width and height to print to ascii
+uint8_t *compress_image(struct BMP_HEADER head, uint8_t *pixel_norm, int asc_w, int asc_h);
+
+
+// converst normalised pixel values to an array of ascii characters provided
+uint8_t *asciify(uint8_t *values, int asc_w, int asc_h, uint8_t *ascii_table, int table_sz);
+
+
+// Prints the ascii text array to the terminal
+void print_ascii(uint8_t *ascii_array, int asc_w, int asc_h);
+
+
+// Saves the ascii image to ascii.txt file
+void save_ascii(uint8_t *ascii_array, int asc_w, int asc_h);
 
 #endif
