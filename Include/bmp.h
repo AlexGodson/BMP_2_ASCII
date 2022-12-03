@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#define CUT_OFF_BRIGHTNESS 70
+#define MARK_DOWN_BRIGHTNESS 20
+
 #pragma pack(push, 1)
 
 // struct that holds all of the meta-data for the .bmp file provided

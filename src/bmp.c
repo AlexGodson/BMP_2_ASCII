@@ -227,8 +227,8 @@ uint8_t *asciify(uint8_t *values, int asc_w, int asc_h, uint8_t *ascii_table, in
     
     for (int i = 0; i < asc_w * asc_h; ++i) {
         ascii_char = *(values + i) * (table_sz-1);
-        ascii_char = (ascii_char / 255) - 0; // edit the subtract value to make it darker
-        if (ascii_char < 0 || ascii_char > 75) { // edit to change the cutoff value for brightness
+        ascii_char = (ascii_char / 255) - MARK_DOWN_BRIGHTNESS;
+        if (ascii_char < 0 || ascii_char > CUT_OFF_BRIGHTNESS) {
             ascii_char = 0;
         }
         *(ascii + i) = *(ascii_table + ascii_char);

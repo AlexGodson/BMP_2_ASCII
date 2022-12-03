@@ -6,66 +6,6 @@
 #include "../Include/tests.h"
 
 
-// Dumps the contents of the image hex to a text file names image_hex.txt
-void dump_img_to_txt(struct BMP_HEADER header, char *filename) {
-    FILE *fptr = fopen(filename, "rb");
-
-    if (fptr == NULL) {
-        printf("Error opening file: %s\n", filename);
-        exit(-1);
-    }
-
-    // Moving the file data pointer to the start of the image Hex data
-    // Image data starts at bmp_head->offset
-    int found_seek = fseek(fptr, header.offset, SEEK_SET);
-
-    if (found_seek == -1) {
-        printf("ERROR: Could not find bmp image offset in file\n");
-        exit(-1);
-    }
-
-    FILE *out_fptr = fopen("temp/image_hex.txt", "w");;
-
-    if (out_fptr == NULL) {
-        printf("Error opening file: ..temp/image_hex.txt\n");
-        exit(-1);
-    }    
-
-    uint8_t hex;
-    uint8_t *hex_ptr = &hex;
-    int width = 0;
-    int pos = 0;
-    while (pos < (header.image_size_bytes)) {
-        fread(hex_ptr, sizeof(uint8_t), 1, fptr);
-        fprintf(out_fptr, "%x ", *hex_ptr);
-        width++;
-        pos++;
-        if (header.width_px % 4 != 0 && width == header.width_px * header.height_px * 3) {
-            fseek(fptr, 4 - (header.width_px % 4), SEEK_CUR);
-            width=0;
-        }
-        if (width%3 == 0) {
-            fprintf(out_fptr, "\n");
-        }
-    }
-
-    fclose(out_fptr);
-    fclose(fptr);
-}
-
-
-// Dumps the read hex data to a text file named produced_hex.txt
-void dump_hex_to_txt(struct BMP_HEADER header, uint8_t *hex) {
-
-}
-
-
-// Dumps the read Pixel data to a textfile named read_pixel_hex.txt
-void dump_pixel_to_hex(struct BMP_HEADER header, struct PIXEL24 *pixels) {
-
-}
-
-
 // For debugging purposes
 // Prints all of the meta-data associated with the provided BMP file
 void print_head(struct BMP_HEADER image_head) {

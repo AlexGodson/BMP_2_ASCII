@@ -4,9 +4,10 @@
 #include "../Include/bmp.h"
 #include "../Include/tests.h" // Remove  when the project is done
 
-#define table_sz 92
+#define table_sz 78
 
-uint8_t ASCII_TABLE[table_sz] = " `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ&@";
+// uint8_t ASCII_TABLE[table_sz] = " `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ&@";
+uint8_t ASCII_TABLE[table_sz] = " `.-':_,^=;><+!rc*/z?sv)J7(|i{}fI31tlu[neoYxjya]SwqkP6h9d4VpOGbUAKXHm8#$g0WQ&@";
 // uint8_t ASCII_TABLE[table_sz] = ".-+/=#@";
 
 int main(int argc, char **argv) {
