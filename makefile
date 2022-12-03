@@ -5,9 +5,9 @@ _SRC=src
 SRC=$(wildcard $(_SRC)/*.c)
 _OBJ=src/OBJ
 OBJ=$(patsubst $(_SRC)/%.c, $(_OBJ)/%.o, $(SRC))
-_INPUT=inputs
+_INPUT=images
 IMGS=$(wildcard $(_INPUT)/*.bmp)
-OUT=Asciify
+OUT=asciify
 
 all: $(OUT)
 

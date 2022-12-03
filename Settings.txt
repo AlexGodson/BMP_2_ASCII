@@ -1,0 +1,4 @@
+asc_w = 256,
+asc_h = 256,
+Brightness_cutoff = 90,
+Markdown_Brightness = 0,

@@ -5,8 +5,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#define CUT_OFF_BRIGHTNESS 70
-#define MARK_DOWN_BRIGHTNESS 20
+#define MAX_DIGITS 8
 
 #pragma pack(push, 1)
 
@@ -31,113 +30,148 @@ struct BMP_HEADER {
     uint32_t  important_colors;   // Important colors
 };
 
-
-// TODO ALOT OF THESE PROPERLY
-// TODO Implement properly some more bmp format functions
-// Right now only 24BPP images work...... I think
-struct PIXEL1 {     //1bpp
-    uint8_t B; // COLOUR
-};
-
-struct PIXEL2 {     //2bpp
-    uint8_t A;      //
-    uint8_t B;      //
-};
-
-struct PIXEL4 {     // 4bpp
-    uint8_t A;      //
-    uint8_t B;      //
-    uint8_t C;      //
-    uint8_t D;      //
-};
-
-struct PIXEL8 {     // 8bpp
-    uint8_t A;      //
-    uint8_t B;      //
-    uint8_t C;      //
-    uint8_t D;      //
-};
-
-
-struct PIXEL16 {    // 16bpp
-    uint8_t A;      //
-    uint8_t B;      //
-    uint8_t C;      //
-    uint8_t D;      //
-};
-
-/*      PIXEL24  --- 24bpp
-Blue    FF 00 00 --- 255  0    0
-Green   00 FF 00 --- 0    255  0
-Red     00 00 FF --- 0    0    255
-*/
-struct PIXEL24 {
-    uint8_t B;      // BLUE
-    uint8_t G;      // GREEN
-    uint8_t R;      // RED
-};
-
-/*      PIXEL32 --- 32bpp
-NULL    11100000 00000000 00000000 00000000
-Alpha   00011111 00000000 00000000 00000000
-Blue    00000000 11111110 00000000 00000000
-Green   00000000 00000001 11111110 00000000
-Red     00000000 00000000 00000001 11111111
-*/
-struct PIXEL32 {
-    uint8_t A;      //
-    uint8_t B;      //
-    uint8_t C;      //
-    uint8_t D;      //
-};
-
 #pragma pack(pop)
 
+struct BMP_INFO {
+    uint32_t  size; 
+    uint32_t  offset; 
+    int32_t   width_px;
+    int32_t   height_px;
+    uint16_t  bits_per_pixel;
+    uint32_t  image_size_bytes;
+    struct PIXEL *(*transform_hex)(struct BMP_INFO bmp_info, uint8_t *hex_data);
+    uint8_t *(*normalise_pixels)(struct BMP_INFO head, struct PIXEL *pixels);
+    int asc_w, asc_h, cut_off, mark_down;
+;
+};
+
+struct PIXEL {
+    uint8_t A;
+    uint8_t B;
+    uint8_t C;
+    uint8_t D;
+};
+
+
 // Get some head, bitches (and some image data from BMP-HEX stored as single bytes)
-uint8_t *get_BMP_data(char *filepath, struct BMP_HEADER *bmp_head);
+uint8_t *get_BMP_data(struct BMP_HEADER *bmp_head, char *filepath);
+
+
+// For debugging purposes
+// Prints all of the meta-data associated with the provided BMP file
+void print_head(struct BMP_HEADER image_head);
+
+
+// turns the header from the read in file to the useful one to be passed to functions
+struct BMP_INFO transform_header(struct BMP_HEADER header);
+
+
+// Retrieves the settings stated in the Settings.txt file and puts them in the BMP_INFO struct
+void get_settings(struct BMP_INFO *bmp_info);
 
 
 // reading the data from the raw HEX into the BMP specific pixel format
-/*      PIXEL24  --- 24bpp
+// functions below called by a function pointer stored in BMP_INFO
+/*      1bpp
+
+*/
+struct PIXEL *HEX_to_PIXEL1(struct BMP_INFO bmp_info, uint8_t *hex_data);
+
+
+/*      2bpp
+
+*/
+struct PIXEL *HEX_to_PIXEL2(struct BMP_INFO bmp_info, uint8_t *hex_data);
+
+
+/*      4bpp
+
+*/
+struct PIXEL *HEX_to_PIXEL4(struct BMP_INFO bmp_info, uint8_t *hex_data);
+
+
+/*      8bpp
+
+*/
+struct PIXEL *HEX_to_PIXEL8(struct BMP_INFO bmp_info, uint8_t *hex_data);
+
+
+
+/*
+
+*/
+struct PIXEL *HEX_to_PIXEL16(struct BMP_INFO bmp_info, uint8_t *hex_data);
+
+// reading the data from the raw HEX into the BMP specific pixel format
+/*      24bpp
 Blue -  FF 00 00 --- 255  0    0
 Green - 00 FF 00 --- 0    255  0
 Red -   00 00 FF --- 0    0    255
 ....    00 00 00 --- Buffer to bring the total bytes per row to a multiple of 4
 */
-struct PIXEL24 *HEX_to_PIXEL24(uint8_t *hex_data, struct BMP_HEADER bmp_info);
+struct PIXEL *HEX_to_PIXEL24(struct BMP_INFO bmp_info, uint8_t *hex_data);
 
 
-/*      PIXEL32 --- 32bpp
-NULL    11100000 00000000 00000000 00000000
-Alpha   00011111 00000000 00000000 00000000
-Blue    00000000 11111110 00000000 00000000
-Green   00000000 00000001 11111110 00000000
-Red     00000000 00000000 00000001 11111111
-....    00 00 00 00--- then buffer to bring the total bytes per row to a multiple of 4
+// /*      32bpp
+// Blue    11111111 10000000 00000000 00000000
+// Green   00000000 01111111 10000000 00000000
+// Red     00000000 00000000 01111111 00000000
+// Alpha   00000000 00000000 00000000 11111000
+// NULL    00000000 00000000 00000000 00000111
+// ....    00 00 00 00--- then buffer to bring the total bytes per row to a multiple of 4
+// */
+struct PIXEL *HEX_to_PIXEL32(struct BMP_INFO bmp_info, uint8_t *hex_data);
+
+
+// TO COMMENT
+/*
+
 */
-struct PIXEL32 *HEX_to_PIXEL32(uint8_t *hex_data, struct BMP_HEADER bmp_info);
+uint8_t *normalise_pixels1(struct BMP_INFO head, struct PIXEL *pixels);
 
 
-// averages the pixels to single values to represent their brightness directly based on brightness
-// B G R -> 87 201 18 -> 102
-uint8_t *normalise_pixels_linear24(struct BMP_HEADER head, struct PIXEL24 *pixels);
+/*
+
+*/
+uint8_t *normalise_pixels2(struct BMP_INFO head, struct PIXEL *pixels);
 
 
-// converts the pixel RGB values to a brightness value
-// higher R/G/B values are weighted to increase the brightness
-uint8_t *normalise_pixels_weighted24(struct BMP_HEADER head, struct PIXEL24 *pixels);
+/*
+
+*/
+uint8_t *normalise_pixels4(struct BMP_INFO head, struct PIXEL *pixels);
 
 
-// averages the pixels to single values to represent their brightness directly based on brightness
-// Ignores Alpha values
-// A B G R -> 87 201 18 -> 102
-uint8_t *normalise_pixels_linear32(struct BMP_HEADER head, struct PIXEL32 *pixels);
+/*
+
+*/
+uint8_t *normalise_pixels8(struct BMP_INFO head, struct PIXEL *pixels);
 
 
-// converts the pixel RGB values to a brightness value
-// Ignoring alpha values
-// higher R/G/B values are weighted to increase the brightness
-uint8_t *normalise_pixels_weighted32(struct BMP_HEADER head, struct PIXEL32 *pixels);
+/*
+
+*/
+uint8_t *normalise_pixels16(struct BMP_INFO head, struct PIXEL *pixels);
+
+
+/*      24bpp
+Blue -  FF 00 00 --- 255  0    0
+Green - 00 FF 00 --- 0    255  0
+Red -   00 00 FF --- 0    0    255
+....    00 00 00 --- Buffer to bring the total bytes per row to a multiple of 4
+*/
+uint8_t *normalise_pixels24(struct BMP_INFO head, struct PIXEL *pixels);
+
+
+// /*      32bpp
+// Blue    11111111 10000000 00000000 00000000
+// Green   00000000 01111111 10000000 00000000
+// Red     00000000 00000000 01111111 00000000
+// Alpha   00000000 00000000 00000000 11111000
+// NULL    00000000 00000000 00000000 00000111
+// ....    00 00 00 00--- then buffer to bring the total bytes per row to a multiple of 4
+// */
+uint8_t *normalise_pixels32(struct BMP_INFO head, struct PIXEL *pixels);
 
 
 // Compresses the image to the correct width and height to print to ascii
@@ -145,14 +179,14 @@ uint8_t *compress_image(struct BMP_HEADER head, uint8_t *pixel_norm, int asc_w, 
 
 
 // converst normalised pixel values to an array of ascii characters provided
-uint8_t *asciify(uint8_t *values, int asc_w, int asc_h, uint8_t *ascii_table, int table_sz);
+uint8_t *asciify(uint8_t *values, struct BMP_INFO bmp_info, uint8_t *ascii_table, int table_sz);
 
 
 // Prints the ascii text array to the terminal
-void print_ascii(uint8_t *ascii_array, int asc_w, int asc_h);
+void print_ascii(uint8_t *ascii_array, struct BMP_INFO bmp_info);
 
 
 // Saves the ascii image to ascii.txt file
-void save_ascii(uint8_t *ascii_array, int asc_w, int asc_h);
+void save_ascii(uint8_t *ascii_array, struct BMP_INFO bmp_info);
 
 #endif

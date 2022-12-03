@@ -2,13 +2,11 @@
 #include <stdlib.h>
 
 #include "../Include/bmp.h"
-#include "../Include/tests.h" // Remove  when the project is done
 
-#define table_sz 78
+#define table_sz 92
 
-// uint8_t ASCII_TABLE[table_sz] = " `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ&@";
-uint8_t ASCII_TABLE[table_sz] = " `.-':_,^=;><+!rc*/z?sv)J7(|i{}fI31tlu[neoYxjya]SwqkP6h9d4VpOGbUAKXHm8#$g0WQ&@";
-// uint8_t ASCII_TABLE[table_sz] = ".-+/=#@";
+uint8_t ASCII_TABLE[table_sz] = " `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ&@";
+
 
 int main(int argc, char **argv) {
     if (argc != 2) {
@@ -18,8 +16,9 @@ int main(int argc, char **argv) {
     }
     printf("\nFILE: %s\n", argv[1]);
 
-    struct BMP_HEADER bmp_head;
-    uint8_t *HEX_DATA = get_BMP_data(*(argv + 1), &bmp_head);
+
+    struct BMP_HEADER BMP_HEAD;
+    uint8_t *HEX_DATA = get_BMP_data(&BMP_HEAD, *(argv + 1));
 
     if (HEX_DATA == NULL) {
         printf("ERROR: Image data not loaded correctly\n");
@@ -27,60 +26,26 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    uint8_t *Normal_Pixels;
+    // struct to hold important data and the pixel transform function prototype
+    struct BMP_INFO BMP = transform_header(BMP_HEAD);
 
-    if (bmp_head.bits_per_pixel == 32) {
-        struct PIXEL32 *Pixel_Data = HEX_to_PIXEL32(HEX_DATA, bmp_head);
+    // sets the settings of the ascii image generator based on the Settings.txt file
+    get_settings(&BMP);
 
-        if (Pixel_Data == NULL) {
-            printf("ERROR: Pixel data empty, Exiting the program\n");
-            return -1;
-        }
+    // transforms the Hex data to a pixel array using the respective bits per pixel format
+    struct PIXEL *pixels = BMP.transform_hex(BMP, HEX_DATA);
 
-        // Normalised pixel data stored as 8 bit ints
-        Normal_Pixels = normalise_pixels_linear32(bmp_head, Pixel_Data);
+    // normalises the pixel data into an array scaled from 0 255 brightness
+    uint8_t *pixels_normalised = BMP.normalise_pixels(BMP, pixels);
 
-        if (Normal_Pixels == NULL) {
-            printf("ERROR: normalised pixels not initialised\n");
-            exit(-1);
-        }
-        
-    } else if (bmp_head.bits_per_pixel == 24) {
-        struct PIXEL24 *Pixel_Data = HEX_to_PIXEL24(HEX_DATA, bmp_head);
+    BMP.asc_h = BMP.height_px;
+    BMP.asc_w = BMP.width_px;
+    uint8_t *ascii = asciify(pixels_normalised, BMP, ASCII_TABLE, table_sz);
 
-        if (Pixel_Data == NULL) {
-            printf("ERROR: Pixel data empty, Exiting the program\n");
-            return -1;
-        }
+    print_ascii(ascii, BMP);
+    save_ascii(ascii, BMP);
 
-        // Normalised pixel data stored as 8 bit ints
-        Normal_Pixels = normalise_pixels_linear24(bmp_head, Pixel_Data);
-
-        if (Normal_Pixels == NULL) {
-            printf("ERROR: normalised pixels not initialised\n");
-            exit(-1);
-        }
-    }
-
-    // Strictly for Debugging, Get rid of soon
-    print_head(bmp_head);
-
-    int asc_w = bmp_head.width_px;
-    int asc_h = bmp_head.height_px;
-
-    // converting normalised pixels to corresponding ascii array;
-    uint8_t *ascii = asciify(Normal_Pixels, asc_w, asc_h, ASCII_TABLE, table_sz);
-
-    if (ascii == NULL) {
-        printf("ERROR: No ascii image array found\n");
-        exit(-1);
-    }
-
-    print_ascii(ascii, asc_w, asc_h);
-    save_ascii(ascii, asc_w, asc_h);
-
-    free(ascii);
-    free(HEX_DATA);
+    print_head(BMP_HEAD);
 
     return 0;
 }
