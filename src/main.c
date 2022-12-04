@@ -30,6 +30,7 @@ int main(int argc, char **argv) {
     struct BMP_INFO BMP = transform_header(BMP_HEAD);
 
     // sets the settings of the ascii image generator based on the Settings.txt file
+    printf("Getting settings\n");
     get_settings(&BMP);
 
     // transforms the Hex data to a pixel array using the respective bits per pixel format
@@ -38,14 +39,21 @@ int main(int argc, char **argv) {
     // normalises the pixel data into an array scaled from 0 255 brightness
     uint8_t *pixels_normalised = BMP.normalise_pixels(BMP, pixels);
 
-    BMP.asc_h = BMP.height_px;
-    BMP.asc_w = BMP.width_px;
-    uint8_t *ascii = asciify(pixels_normalised, BMP, ASCII_TABLE, table_sz);
 
-    print_ascii(ascii, BMP);
-    save_ascii(ascii, BMP);
+    // Turns the pixel data into the ascii character at the respective brightness level
+    // Ascii array position == normal_vals/255 * Ascii_array_length
+    uint8_t *ascii = asciify(BMP, pixels_normalised, ASCII_TABLE, table_sz);
+
+    // printing the ascii image to console and 
+    print_ascii(BMP, ascii);
+    save_ascii(BMP, ascii);
 
     print_head(BMP_HEAD);
+
+    free(ascii);
+
+    printf("Settings 1: %d\nSettings 2: %d\n", BMP.asc_w, BMP.asc_h);
+    printf("Settings 3: %d\nSettings 4: %d\n", BMP.cut_off, BMP.mark_down);
 
     return 0;
 }

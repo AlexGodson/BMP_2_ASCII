@@ -11,6 +11,7 @@ If you find me, in this ever so lonely part of the internet and github, I ask...
 
 #George bound to a BMP
 // TO ADD
+George->source: https://www.nationalgeographic.com/animals/article/when-mating-season-arrives-these-frogs-melt
 
 #George lost in the Matrix of HEX
 // TO ADD
@@ -21,4 +22,9 @@ If you find me, in this ever so lonely part of the internet and github, I ask...
 #Usage
 the inputs folder is really just for show/easy access, call the Asciify file and provide the filepath of a BMP image (or any image
 (theprogram wont run though))
+
+You can alter the settings of the converter in the Settings folder
+
+As of now it only converts pixel by pixel, no compression just yet so make sure the file is ~~200*300 max
+
 ./Asciify /home/me/Images/some_bmp_file.bmp

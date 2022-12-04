@@ -93,6 +93,7 @@ struct BMP_INFO transform_header(struct BMP_HEADER header) {
     };
     
     switch (header.bits_per_pixel) {
+    /*  Not Implemented yet
     case 1:
         bmp_info.transform_hex = HEX_to_PIXEL1;
         bmp_info.normalise_pixels = normalise_pixels1;
@@ -113,6 +114,7 @@ struct BMP_INFO transform_header(struct BMP_HEADER header) {
         bmp_info.transform_hex = HEX_to_PIXEL16;
         bmp_info.normalise_pixels = normalise_pixels16;
         break;
+    */
     case 24:
         bmp_info.transform_hex = HEX_to_PIXEL24;
         bmp_info.normalise_pixels = normalise_pixels24;
@@ -130,87 +132,43 @@ struct BMP_INFO transform_header(struct BMP_HEADER header) {
 // Retrieves the settings stated in the Settings.txt file and puts them in the BMP_INFO struct
 void get_settings(struct BMP_INFO *bmp_info) {
     FILE *fptr = fopen("Settings.txt", "r");
-    int settings[10];
-    char digits[MAX_DIGITS];
-    int setting_num = 0;
-    char cur, nex;
-    while ((cur = fgetc(fptr)) != EOF) {
+    if (fptr == NULL) {
+        printf("ERROR: Error opening settings file\n");
+        exit(-1);
+    }
+
+    int settings[SETTINGS_NUM] = {0};
+    char digits[MAX_DIGITS] = {0};
+    int setting_num = 0, digits_place = 0;
+    char cur = fgetc(fptr);
+    while (cur != EOF) {
         if (0 <= (cur-'0') && (cur-'0') <= 9) {
-            digits[0] = cur;
-            int digits_place = 1;
-            nex = fgetc(fptr);
-            if (0 <= (nex-'0') && (nex-'0') <= 9) {
-                while (0 <= (nex-'0') && (nex-'0') <= 9) {
-                    cur = nex;
-                    nex = fgetc(fptr);
-                    digits[digits_place] = cur;
-                    digits_place++;
-                    // if the digits array overflows we have a digit that could cause an
-                    // integer overflow, throwing an error in that case
-                    if (digits_place >= MAX_DIGITS) {
-                        printf("ERROR: Digit Overflow at Digit: %d", atoi(digits));
-                        exit(-1);
-                    }
-                }
-            }
-            settings[setting_num] = atoi(digits);
+            digits[digits_place] = cur;
+            digits_place++;
         }
+        if (cur == ',') {
+            settings[setting_num] = atoi(digits);
+            setting_num++;
+            digits_place = 0;
+            for (int i = 0; i < MAX_DIGITS; ++i) {
+                digits[i] = 0;
+            }
+        }
+        if (setting_num == SETTINGS_NUM) {
+            break;
+        }
+        cur = fgetc(fptr);
     }
     fclose(fptr);
 
-    bmp_info->asc_h = settings[0];
-    bmp_info->asc_w = settings[1];
-    bmp_info->cut_off = settings[2];
-    bmp_info->mark_down = settings[3];
+    bmp_info->ascii_scaling_factor = settings[0];
+    bmp_info->cut_off = settings[1];
+    bmp_info->mark_down = settings[2];
+
+    bmp_info->asc_w = bmp_info->width_px/bmp_info->ascii_scaling_factor;
+    bmp_info->asc_h = bmp_info->height_px/bmp_info->ascii_scaling_factor;
 }
 
-
-struct PIXEL *HEX_to_PIXEL1(struct BMP_INFO bmp_info, uint8_t *hex_data) {
-    struct PIXEL *pixel_data = (struct PIXEL*)malloc(sizeof(struct PIXEL) * bmp_info.height_px * bmp_info.width_px);
-    
-    return pixel_data;
-}
-
-
-/*      2bpp
-    TODO
-*/
-struct PIXEL *HEX_to_PIXEL2(struct BMP_INFO bmp_info, uint8_t *hex_data) {
-    struct PIXEL *pixel_data = (struct PIXEL*)malloc(sizeof(struct PIXEL) * bmp_info.height_px * bmp_info.width_px);
-    
-    return pixel_data;
-}
-
-
-/*      4bpp
-    TODO
-*/
-struct PIXEL *HEX_to_PIXEL4(struct BMP_INFO bmp_info, uint8_t *hex_data) {
-    struct PIXEL *pixel_data = (struct PIXEL*)malloc(sizeof(struct PIXEL) * bmp_info.height_px * bmp_info.width_px);
-    
-    return pixel_data;
-}
-
-
-/*      8bpp
-    TODO
-*/
-struct PIXEL *HEX_to_PIXEL8(struct BMP_INFO bmp_info, uint8_t *hex_data) {
-    struct PIXEL *pixel_data = (struct PIXEL*)malloc(sizeof(struct PIXEL) * bmp_info.height_px * bmp_info.width_px);
-    
-    return pixel_data;
-}
-
-
-
-/*      16bpp
-    TODO
-*/
-struct PIXEL *HEX_to_PIXEL16(struct BMP_INFO bmp_info, uint8_t *hex_data) {
-    struct PIXEL *pixel_data = (struct PIXEL*)malloc(sizeof(struct PIXEL) * bmp_info.height_px * bmp_info.width_px);
-    
-    return pixel_data;
-}
 
 // reading the data from the raw HEX into the BMP specific pixel format
 /*      24bpp
@@ -242,18 +200,18 @@ struct PIXEL *HEX_to_PIXEL24(struct BMP_INFO bmp_info, uint8_t *hex_data) {
         }
     }
 
+    free(hex_data);
     return pixel_data;
 }
 
 
-// /*      32bpp
-// Blue    11111111 10000000 00000000 00000000
-// Green   00000000 01111111 10000000 00000000
-// Red     00000000 00000000 01111111 00000000
-// Alpha   00000000 00000000 00000000 11111000
-// NULL    00000000 00000000 00000000 00000111
-// ....    00 00 00 00--- then buffer to bring the total bytes per row to a multiple of 4
-// */
+/*      32bpp
+Blue -  FF 00 00 00 --- 255  0    0    0
+Green - 00 FF 00 00 --- 0    255  0    0
+Red -   00 00 FF 00 --- 0    0    255  0
+Alpha - 00 00 00 FF --- 0    0    0    255 
+....    00 00 00 00--- then buffer to bring the total bytes per row to a multiple of 4 (Not Necessary here)
+*/
 struct PIXEL *HEX_to_PIXEL32(struct BMP_INFO bmp_info, uint8_t *hex_data) {
     struct PIXEL *pixel_data = (struct PIXEL*)malloc(sizeof(struct PIXEL) * bmp_info.height_px * bmp_info.width_px);
 
@@ -271,122 +229,10 @@ struct PIXEL *HEX_to_PIXEL32(struct BMP_INFO bmp_info, uint8_t *hex_data) {
             pixel_data[(hp * bmp_info.width_px) + wp].D = *(hex_data + hex_pos + 3);
             hex_pos += 4;
         }
-        // shifting the bits to the end of the row to make it a multiple of 4
-        // NOT NEEDED ?
     }
 
+    free(hex_data);
     return pixel_data;
-}
-
-
-
-// TO COMMENT
-uint8_t *normalise_pixels1(struct BMP_INFO head, struct PIXEL *pixels) {
-    // allocating enough memory to hold the normalised pixel values
-    uint8_t *normal_pixels = (uint8_t*)malloc(sizeof(uint8_t) * head.width_px * head.height_px);
-
-    if (normal_pixels == NULL) {
-        printf("ERROR: Couldn't allocate memory for the normalised pixels\n");
-        return NULL;
-    }
-
-    // The average value of the pixels RGB values to be calculated in the following switch statement
-    // uint8_t avg;
-    for (int pos = 0; pos < head.width_px * head.height_px; ++pos) {
-        
-    }
-
-    // Freeing the pixel data as it is not needed anymore
-    free(pixels);
-    return (normal_pixels);
-}
-
-
-
-uint8_t *normalise_pixels2(struct BMP_INFO head, struct PIXEL *pixels) {
-    // allocating enough memory to hold the normalised pixel values
-    uint8_t *normal_pixels = (uint8_t*)malloc(sizeof(uint8_t) * head.width_px * head.height_px);
-
-    if (normal_pixels == NULL) {
-        printf("ERROR: Couldn't allocate memory for the normalised pixels\n");
-        return NULL;
-    }
-
-    // The average value of the pixels RGB values to be calculated in the following switch statement
-    // uint8_t avg;
-    for (int pos = 0; pos < head.width_px * head.height_px; ++pos) {
-        
-    }
-
-    // Freeing the pixel data as it is not needed anymore
-    free(pixels);
-    return (normal_pixels);
-}
-
-
-
-uint8_t *normalise_pixels4(struct BMP_INFO head, struct PIXEL *pixels) {
-    // allocating enough memory to hold the normalised pixel values
-    uint8_t *normal_pixels = (uint8_t*)malloc(sizeof(uint8_t) * head.width_px * head.height_px);
-
-    if (normal_pixels == NULL) {
-        printf("ERROR: Couldn't allocate memory for the normalised pixels\n");
-        return NULL;
-    }
-
-    // The average value of the pixels RGB values to be calculated in the following switch statement
-    // uint8_t avg;
-    for (int pos = 0; pos < head.width_px * head.height_px; ++pos) {
-        
-    }
-
-    // Freeing the pixel data as it is not needed anymore
-    free(pixels);
-    return (normal_pixels);
-}
-
-
-
-uint8_t *normalise_pixels8(struct BMP_INFO head, struct PIXEL *pixels) {
-    // allocating enough memory to hold the normalised pixel values
-    uint8_t *normal_pixels = (uint8_t*)malloc(sizeof(uint8_t) * head.width_px * head.height_px);
-
-    if (normal_pixels == NULL) {
-        printf("ERROR: Couldn't allocate memory for the normalised pixels\n");
-        return NULL;
-    }
-
-    // The average value of the pixels RGB values to be calculated in the following switch statement
-    // uint8_t avg;
-    for (int pos = 0; pos < head.width_px * head.height_px; ++pos) {
-        
-    }
-
-    // Freeing the pixel data as it is not needed anymore
-    free(pixels);
-    return (normal_pixels);
-}
-
-
-
-uint8_t *normalise_pixels16(struct BMP_INFO head, struct PIXEL *pixels) {
-    // allocating enough memory to hold the normalised pixel values
-    uint8_t *normal_pixels = (uint8_t*)malloc(sizeof(uint8_t) * head.width_px * head.height_px);
-
-    if (normal_pixels == NULL) {
-        printf("ERROR: Couldn't allocate memory for the normalised pixels\n");
-        return NULL;
-    }
-
-    // The average value of the pixels RGB values to be calculated in the following switch statement
-    // uint8_t avg;
-    for (int pos = 0; pos < head.width_px * head.height_px; ++pos) {
-        
-    }
-
-    // Freeing the pixel data as it is not needed anymore
-    free(pixels);
-    return (normal_pixels);
 }
 
 
@@ -449,17 +295,32 @@ uint8_t *normalise_pixels32(struct BMP_INFO head, struct PIXEL *pixels) {
 
 
 // Compresses the image to the correct width and height to print to ascii
-uint8_t *compress_image(struct BMP_HEADER head, uint8_t *pixel_norm, int asc_w, int asc_h) {
-    uint8_t *normal_pixels = (uint8_t*)malloc( sizeof(uint8_t) * asc_w * asc_h );
+uint8_t *compress_image(struct BMP_INFO bmp_info, uint8_t *pixel_norm, int asc_w, int asc_h) {
+    uint8_t *asc_BLOC = (uint8_t*)malloc( sizeof(uint8_t) * asc_w * asc_h );
     
-    // TODO
+    // if (asc_BLOC == NULL) {
+    //     printf("ERROR: Ascii image memory not initialised\n");
+    //     return NULL;
+    // }
 
-    return normal_pixels;
+    // int width_cutoff = (bmp_info.width_px % bmp_info.ascii_scaling_factor) / 2;
+    // int height_cutoff = (bmp_info.height_px & bmp_info.ascii_scaling_factor) / 2;
+    // int start_pix = (height_cutoff * bmp_info.width_px) + width_cutoff;
+
+    // int useful_pixels = bmp_info.ascii_scaling_factor * bmp_info.ascii_scaling_factor * bmp_info.asc_h * bmp_info.asc_w;
+
+    // int avg;
+    // for(int px = start_pix; px < useful_pixels; ++px) {
+
+    // }
+    
+
+    return asc_BLOC;
 }
 
 
 // converts normalised pixel values to an array of ascii characters provided
-uint8_t *asciify(uint8_t *values, struct BMP_INFO bmp_info, uint8_t *ascii_table, int table_sz) {
+uint8_t *asciify(struct BMP_INFO bmp_info, uint8_t *values, uint8_t *ascii_table, int table_sz) {
     uint8_t *ascii = (uint8_t*)malloc(sizeof(uint8_t) * bmp_info.asc_w * bmp_info.asc_h);
 
     if (ascii == NULL) {
@@ -468,7 +329,7 @@ uint8_t *asciify(uint8_t *values, struct BMP_INFO bmp_info, uint8_t *ascii_table
     }
 
     int ascii_char;
-    
+    printf("mark_down: %d", bmp_info.mark_down);
     for (int i = 0; i < bmp_info.asc_w * bmp_info.asc_h; ++i) {
         ascii_char = *(values + i) * (table_sz-1);
         ascii_char = (ascii_char / 255) - bmp_info.mark_down;
@@ -479,13 +340,12 @@ uint8_t *asciify(uint8_t *values, struct BMP_INFO bmp_info, uint8_t *ascii_table
     }
 
     free(values);
-
     return ascii;
 }
 
 
 // Prints the ascii text array to the terminal
-void print_ascii(uint8_t *ascii_array, struct BMP_INFO bmp_info) {
+void print_ascii(struct BMP_INFO bmp_info, uint8_t *ascii_array) {
     // BMP image 0,0 is at the botton left corner
     // it must print upside down
     int pos;
@@ -504,8 +364,8 @@ void print_ascii(uint8_t *ascii_array, struct BMP_INFO bmp_info) {
 
 
 // Saves the ascii image to ascii.txt file
-void save_ascii(uint8_t *ascii_array, struct BMP_INFO bmp_info) {
-    FILE *fptr = fopen("/home/alexg/Code/BMP/ASCII.txt", "w");
+void save_ascii(struct BMP_INFO bmp_info, uint8_t *ascii_array) {
+    FILE *fptr = fopen("ASCII.txt", "w");
 
     if (fptr == NULL) {
         printf("ERROR: failed to open Ascii output text file\n");
