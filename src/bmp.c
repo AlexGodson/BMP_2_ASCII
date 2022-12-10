@@ -165,6 +165,9 @@ void get_settings(struct BMP_INFO *bmp_info) {
     bmp_info->cut_off = settings[1];
     bmp_info->mark_down = settings[2];
 
+    // Don't judge me, I know this is silly but the functionality isn't implemented yet
+    // Just to be on the safe side we will leave this here so you dont mess with anything
+    bmp_info->ascii_scaling_factor = 1; // TODO GET RID OF MEEEEE
     bmp_info->asc_w = bmp_info->width_px/bmp_info->ascii_scaling_factor;
     bmp_info->asc_h = bmp_info->height_px/bmp_info->ascii_scaling_factor;
 }
@@ -295,6 +298,7 @@ uint8_t *normalise_pixels32(struct BMP_INFO head, struct PIXEL *pixels) {
 
 
 // Compresses the image to the correct width and height to print to ascii
+// TODO
 uint8_t *compress_image(struct BMP_INFO bmp_info, uint8_t *pixel_norm, int asc_w, int asc_h) {
     uint8_t *asc_BLOC = (uint8_t*)malloc( sizeof(uint8_t) * asc_w * asc_h );
     

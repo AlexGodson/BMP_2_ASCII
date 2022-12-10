@@ -19,11 +19,13 @@ George->source: https://www.nationalgeographic.com/animals/article/when-mating-s
 #George roaming free on my console
 // TO DO AND ADD
 
-#Usage
-the inputs folder is really just for show/easy access, call the Asciify file and provide the filepath of a BMP image (or any image
-(theprogram wont run though))
+#Usage - Make using the command 'make all'
+call the Asciify file and provide the filepath of a BMP image (or any image really
+(but the program wont run though :| ))
+'./asciify George256.bmp'
 
 You can alter the settings of the converter in the Settings folder
+(The scaling factor doesn't do anything just yet but it will kinda mess with the program, so pls leave it as 1)
 
 As of now it only converts pixel by pixel, no compression just yet so make sure the file is ~~200*300 max
 

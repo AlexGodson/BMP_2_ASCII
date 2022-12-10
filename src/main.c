@@ -51,9 +51,5 @@ int main(int argc, char **argv) {
     print_head(BMP_HEAD);
 
     free(ascii);
-
-    printf("Settings 1: %d\nSettings 2: %d\n", BMP.asc_w, BMP.asc_h);
-    printf("Settings 3: %d\nSettings 4: %d\n", BMP.cut_off, BMP.mark_down);
-
     return 0;
 }
